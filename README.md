@@ -18,15 +18,6 @@
         <li><a href="#gallery">Gallery</a></li>
       </ol>
     </td>
-    <td style="width: 35%; text-align: center;">
-      <div>
-        <a href="https://www.youtube.com/watch?v=1BiUblUAd7s"><strong>Welcome to Graph-AI-Agent | Getting Started</strong></a>
-        <h2><strong></strong></h2>
-        <a href="https://www.youtube.com/watch?v=1BiUblUAd7s">
-          <img src="https://img.youtube.com/vi/1BiUblUAd7s/mqdefault.jpg" width="100%" title="Click to watch" alt="Welcome to Graph-AI-Agent"/>
-        </a>
-      </div>
-    </td>
   </tr>
 </table>
 
