@@ -814,9 +814,7 @@ AiNode.getLastPromptsAndResponses = function (node, count = 1, type = "both", ma
 
 AiNode.exitConversation = function (node) {
     const connectedNodes = AiNode.calculateDirectionalityLogic(node);
-    if (connectedNodes) {
-        node.removeConnectedNodes(connectedNodes);
-    }
+    if (connectedNodes) node.disconnectNodes(connectedNodes);
     Logger.debug("AI has exited the conversation.");
 };
 
@@ -832,10 +830,10 @@ AiNode.calculateDirectionalityLogic = function (node, visited = new Set(), inclu
     visited.add(node.uuid);
     const connectedNodes = [];
 
-    for (const { edge, directionality } of node.getEdgeDirectionalities()) {
-        if (directionality !== 'outgoing' && directionality !== 'none') {
-            continue;
-        }
+    node.forEachEdge( (edge)=>{
+        const direction = edge.getDirectionRelativeTo(node);
+        if (direction === 'incoming') return;
+
         for (const pt of edge.pts) {
             if (pt.uuid === node.uuid || visited.has(pt.uuid)) {
                 continue;
@@ -859,7 +857,7 @@ AiNode.calculateDirectionalityLogic = function (node, visited = new Set(), inclu
             // Recurse with the same parameter values
             connectedNodes.push(...AiNode.calculateDirectionalityLogic(pt, visited, includeNonLLM, passThroughLLM));
         }
-    }
+    });
 
     return connectedNodes;
 };

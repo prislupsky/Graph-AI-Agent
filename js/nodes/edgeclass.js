@@ -1,9 +1,5 @@
-function findExistingEdge(node1, node2) {
-    return node1.edges.find(node2.edges.includes, node2.edges);
-}
-
 class Edge {
-    constructor(pts, length = 0.6, strength = 0.1, style){
+    constructor(pts, length = 0.6, strength = 0.1, style, direction){
         this.pts = pts;
         this.length = length;
         this.currentLength = this.length;
@@ -15,8 +11,7 @@ class Edge {
         };
 
         const edgeKey = this.edgeKey = pts.map(String.uuidOf).sort().join('-');
-        this.directionality = Graph.edgeDirectionalities[edgeKey]
-                           || {start: null, end: null};
+        this.directionality = direction || {start: null, end: null};
         this.view = new EdgeView(this, edgeKey, style);
 
         Logger.debug("Creating edge with pts:", pts);
@@ -36,8 +31,7 @@ class Edge {
             directionality: { // Simplified data using UUIDs
                 start: this.directionality.start?.uuid ?? null,
                 end: this.directionality.end?.uuid ?? null
-            },
-            edgeKey: this.edgeKey
+            }
         }
     }
 
@@ -57,7 +51,6 @@ class Edge {
         pts.forEach(n => {
             n.pos = n.pos.minus(avg).scale(amount).plus(avg);
         });
-        if (pts[0]) pts[0].updateEdgeData();
     }
     static scaleLengthByThisAmount(edge){
         return edge.scaleLength(this.valueOf())
@@ -102,8 +95,6 @@ class Edge {
                 }
             }
         }
-
-        Graph.edgeDirectionalities[this.edgeKey] = direction;
     }
     getDirectionRelativeTo(node) {
         if (this.directionality.end === node) return 'outgoing';

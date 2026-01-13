@@ -1,6 +1,6 @@
-﻿Blob.forJson = function(json){
-    return new Blob([json], {type: 'application/json'})
-}
+﻿Blob.forType = function(type, data){ return new Blob([data], { type }) }
+Blob.forHtml = Blob.forType.bind(Blob, 'text/html');
+Blob.forJson = Blob.forType.bind(Blob, 'application/json');
 
 class GraphsKeeper {
     #blobData = new Stored('blobs', 'blob-data');
@@ -8,8 +8,8 @@ class GraphsKeeper {
     #data = new Stored('graphs', 'graph-data');
     #meta = new Stored('graphs', 'graph-meta');
 
-    blobForBlobId(blobId){ return this.#blobData.load(blobId) }
-    blobMetaForGraphId(graphId){ return this.#blobMeta.load(graphId) }
+    blobByBlobId(blobId){ return this.#blobData.load(blobId) }
+    blobMetaByGraphId(graphId){ return this.#blobMeta.load(graphId) }
     dataForMeta(meta){ return this.#data.load(meta.graphId) }
 
     deleteBlob(blobId){ return this.#blobData.delete(blobId) }
@@ -39,7 +39,7 @@ class GraphsKeeper {
     saveMetaAndData(meta, data){
         meta.lastUpdated = new Date().toLocaleString();
         meta.revisions += 1;
-        meta.size = new Blob([data]).size;
+        meta.size = (new Blob([JSON.stringify(data)])).size;
         this.#data.save(meta.graphId, data);
         return this.saveMeta(meta);
     }
@@ -47,10 +47,12 @@ class GraphsKeeper {
 }
 
 class GraphExporter {
+    #nodesHtml = '';
     #out = {
-        data: '',
+        data: {},
         blobMeta: {},
-        offsets: {}
+        offsets: {},
+        format: '19.51'
     };
     constructor(meta, stored){
         this.meta = meta;
@@ -66,26 +68,31 @@ class GraphExporter {
         return this.stored.dataForMeta(this.meta)
     }
     #gatherBlobMeta = (data)=>{
+        this.#nodesHtml = data.nodesHtml || '';
+        delete data.nodesHtml;
         this.#out.data = data;
-        return this.stored.blobMetaForGraphId(this.meta.graphId);
+        return this.stored.blobMetaByGraphId(this.meta.graphId);
     }
     #gatherBlobs = (dictMeta)=>{
         this.#out.blobMeta = dictMeta;
         const proms = [];
         for (const blobId in dictMeta) {
-            proms.push(this.stored.blobForBlobId(blobId))
+            proms.push(this.stored.blobByBlobId(blobId))
         }
         return Promise.all(proms);
     }
     #gatherOutput = (arrBlobs)=>{
+        const out = this.#out;
+        const offsets = out.offsets;
         let i = 0;
-        let o = 0;
-        for (const blobId in this.#out.blobMeta) {
-            this.#out.offsets[blobId] = o;
+        let o = offsets._nodesHtml = Blob.forHtml(this.#nodesHtml).size;
+        for (const blobId in out.blobMeta) {
+            offsets[blobId] = o;
             o += arrBlobs[i].size;
             i += 1;
         }
-        return new Blob([JSON.stringify(this.#out), '\x00', ...arrBlobs]);
+        const strOut = JSON.stringify(out);
+        return new Blob([strOut, '\x00', this.#nodesHtml, ...arrBlobs]);
     }
 }
 
@@ -100,18 +107,24 @@ class GraphImporter {
     blobForNode(node){
         const blobId = node.blob;
         const meta = this.#blobMeta[blobId];
-        const options = {type: meta.type};
         const o = this.#base + this.#offsets[blobId];
         const buffer = this.#buffer.slice(o, o + meta.size);
-        const blob = new Blob([buffer], options);
+        const blob = new Blob([buffer], { type: meta.type });
         this.saveNodeItsBlob(node, blob);
-        this.data = this.data.replace(
-            "&quot;blob&quot;:&quot;" + blobId + "&quot;",
-            "&quot;BLOB&quot;:&quot;" + node.blob + "&quot;"
-        );
+
+        // DEPRECATED
+        if (typeof this.data === 'string') {
+            this.data = this.data.replace(
+                "&quot;blob&quot;:&quot;" + blobId + "&quot;",
+                "&quot;BLOB&quot;:&quot;" + node.blob + "&quot;"
+            );
+            return blob;
+        }
+
+        this.data.nodes[node.uuid].node.blob = node.blob;
         return blob;
     }
-    get finalData(){
+    get finalData(){ // DEPRECATED
         return this.data.replaceAll(
             "&quot;BLOB&quot;:&quot;", "&quot;blob&quot;:&quot;"
         )
@@ -121,6 +134,7 @@ class GraphImporter {
         return file.arrayBuffer()
             .then(this.#handleBuffer)
             .then(this.#handleJson)
+            .then(this.#handleHtml)
     }
     #handleBuffer = (buffer)=>{
         this.#buffer = buffer;
@@ -134,17 +148,21 @@ class GraphImporter {
         return Blob.forJson(buffer.slice(0, i)).text();
     }
     #handleJson = (json)=>{
-        let input = '';
-        try {
-            input = JSON.parse(json)
-        } catch(err) {
-            return Promise.resolve()
-        }
+        let input = null;
+        try { input = JSON.parse(json) } catch {}
+        if (!input) return;
 
         this.#blobMeta = input.blobMeta;
         this.data = input.data;
         this.#offsets = input.offsets;
+
+        // DEPRECATED
+        if (typeof this.data === 'string') return;
+
+        const end = this.#base + this.#offsets._nodesHtml;
+        return Blob.forHtml(this.#buffer.slice(this.#base, end)).text();
     }
+    #handleHtml = (html)=>{ if (html) this.data.nodesHtml = html }
 }
 
 View.Graphs = class {
@@ -318,7 +336,7 @@ View.Graphs = class {
         }
 
         updateForBlob(){
-            this.mom.#stored.blobMetaForGraphId(this.meta.graphId)
+            this.mom.#stored.blobMetaByGraphId(this.meta.graphId)
                 .then(this.#handleBlobMeta)
         }
         #handleBlobMeta = (dictMeta)=>{
@@ -391,9 +409,11 @@ View.Graphs = class {
 
         const blobSaver = new View.Graphs.BlobSaver(this, meta.graphId);
         importer.saveNodeItsBlob = blobSaver.saveNodeItsBlob.bind(blobSaver);
-
         this.#setSelectedGraph(meta).#loadGraph(importer.data, importer);
-        return this.#stored.saveMetaAndData(meta, importer.finalData);
+        blobSaver.cleanStored();
+
+        const data = (typeof importer.data === 'string') && importer.finalData;
+        return this.#stored.saveMetaAndData(meta, data || importer.data);
     }
     async #onFileLoaded(title, e) {
         const content = e.target.result;
@@ -438,7 +458,7 @@ View.Graphs = class {
     #onBtnResetSettingsClicked(e){
         settings.clear();
         settings.init();
-        editTab.init();
+        App.tabEdit.init();
     }
     #onBtnClearLocalClicked = (e)=>{
         localStorage.clear();
@@ -526,6 +546,10 @@ View.Graphs = class {
     }
 
     static Saver = class {
+        #nodesData = {};
+        getNodeData(nodeId){ return this.#nodesData[nodeId] }
+        reset(){ this.#nodesData = {} }
+
         constructor(mom){ this.mom = mom }
         addSave(type, title, content, option){
             const dataMaker = ()=>Promise.resolve(content) ;
@@ -553,34 +577,44 @@ View.Graphs = class {
             pre.innerHTML = pre.innerHTML.replace(/\n/g, App.NEWLINE_PLACEHOLDER)
         }
 
-        #collectAdditionalSaveObjects(){
-            // Collecting slider values
-            const inputValues = localStorage.getItem('inputValues') || '{}';
-            const savedInputValues = `<div id="saved-input-values" style="display:none;">${encodeURIComponent(inputValues)}</div>`;
+        restoreAdditionalSaveObjects(data){
+            App.viewLocations.setDict(data.locations);
 
-            // Collecting saved views
-            const savedViewsString = JSON.stringify(savedViews);
-            const savedViewsElement = `<div id="saved-views" style="display:none;">${encodeURIComponent(savedViewsString)}</div>`;
+            const inputValues = data.inputValues;
+            App.tabEdit.forEachModel( (model)=>{
+                const key = model.key;
+                const val = inputValues[key] ?? Settings.default[key];
+                settings.set(key, val);
+            });
+            App.tabEdit.init();
 
-            // Get current Mandelbrot coords in a standard format
-            const mandelbrotParams = Graph.getCoords();
-            const mandelbrotSaveElement = `<div id="mandelbrot-coords-params" style="display:none;">${encodeURIComponent(JSON.stringify(mandelbrotParams))}</div>`;
-
-            // Get the selected fractal type from localStorage
-            const selectedFractalType = localStorage.getItem('fractal-select');
-            const fractalTypeSaveElement = `<div id="fractal-type" style="display:none;">${encodeURIComponent(JSON.stringify(selectedFractalType))}</div>`;
-
-            // Combine both slider values and saved views in one string
-            return savedInputValues + savedViewsElement + mandelbrotSaveElement + fractalTypeSaveElement;
+            Animation.goToLocation(data.coords);
+            this.#nodesData = data.nodes || data.saveData || {};
         }
-        restoreAdditionalSaveObjects(d){
+        restoreAdditionalSaveObjectsOld(d){ // DEPRECATED
+            const elem = d.querySelector("script.saveData");
+            if (elem) {
+                elem.remove();
+                return this.restoreAdditionalSaveObjects(JSON.parse(elem.textContent));
+            }
+
             const savedViewsElement = d.querySelector("#saved-views");
             if (savedViewsElement) {
-                let savedViewsContent = decodeURIComponent(savedViewsElement.innerHTML);
-                savedViews = JSON.parse(savedViewsContent);
+                const savedViewsContent = decodeURIComponent(savedViewsElement.innerHTML);
+                const savedViews = JSON.parse(savedViewsContent);
                 if (savedViews) {
-                    updateSavedViewsCache();
-                    displaySavedCoordinates();
+                    for (const key in savedViews) {
+                        savedViews[key] = savedViews[key].map( (location)=>{
+                            if (!location.standardCoords) return location;
+
+                            const title = location.title;
+                            const newTitle = (title.startsWith('// ') ? title.slice(3) : title);
+                            const scs = location.standardCoords;
+                            return Location.byPan(newTitle, scs.zoom, scs.pan);
+                        })
+                    }
+
+                    App.viewLocations.setDict(savedViews);
                 }
                 savedViewsElement.remove();
             }
@@ -588,11 +622,28 @@ View.Graphs = class {
             const sliderValuesElement = d.querySelector("#saved-input-values");
             if (sliderValuesElement) {
                 const sliderValuesContent = decodeURIComponent(sliderValuesElement.innerHTML);
-                localStorage.setItem('inputValues', sliderValuesContent);
+                const inputValues = JSON.parse(sliderValuesContent);
+
+                App.tabEdit.forEachModel( (model)=>{
+                    const key = model.key;
+                    const val = inputValues[key] ?? Settings.default[key];
+                    settings.set(key, val);
+                });
+
+                for (const key in inputValues) {
+                    const input = Elem.byId(key);
+                    if (input) {
+                        input.value = inputValues[key];
+                        // Trigger the input event for both sliders and color pickers
+                        const cb = input.dispatchEvent.bind(input, new Event('input'));
+                        Promise.delay(100).then(cb);
+                    }
+                }
+
                 sliderValuesElement.remove();
             }
 
-            restoreInputValues();
+            App.tabEdit.init();
 
             const mandelbrotSaveElement = d.querySelector("#mandelbrot-coords-params");
             if (mandelbrotSaveElement) {
@@ -607,7 +658,10 @@ View.Graphs = class {
                 const fractalSelectElement = Elem.byId('fractal-select');
                 const fractalType = JSON.parse(decodeURIComponent(fractalTypeSaveElement.textContent));
                 if (fractalType) {
+                    settings.set('fractal', fractalType);
                     fractalSelectElement.value = fractalType;
+                    const cb = fractalSelectElement.dispatchEvent.bind(fractalSelectElement, new Event('input'));
+                    Promise.delay(100).then(cb);
                     Select.updateSelectedOption(fractalSelectElement);
                     Fractal.updateJuliaDisplay(fractalType);
                 }
@@ -621,7 +675,7 @@ View.Graphs = class {
 
             return Promise.resolve(meta.graphId)
                 .then(this.#saveBlobsForGraphId)
-                .then(this.#updateTheNodes)
+                .then(this.#gatherNodesData)
                 .then(this.#getSaveData);
         }
         #handleProcessor(processor){
@@ -632,10 +686,9 @@ View.Graphs = class {
             return graphId
                 && (new View.Graphs.BlobSaver(this.mom, graphId)).save()
         }
-        #updateTheNodes = ()=>{ Graph.forEachNode(this.#updateNode) }
-        #updateNode(node){
-            node.updateEdgeData();
-            node.updateNodeData();
+        #gatherNodesData = ()=>{ Graph.forEachNode(this.#gatherNodeData) }
+        #gatherNodeData = (node)=>{
+            this.#nodesData[node.uuid] = node.dataObj()
         }
         #getSaveData = ()=>{
             // Clone the currently selected UUIDs before clearing
@@ -643,22 +696,27 @@ View.Graphs = class {
             const selectedNodesUuids = new Set(selectedNodes.uuids);
             selectedNodes.clear();
 
-            // Save the node data
-            let nodeData = Elem.byId('nodes').innerHTML;
-
+            let nodesHtml = Elem.byId('nodes').innerHTML;
             selectedNodesUuids.forEach(selectedNodes.restoreNodeById, selectedNodes);
+            nodesHtml = this.#replaceNewLinesInLLMSaveData(nodesHtml);
 
-            nodeData = this.#replaceNewLinesInLLMSaveData(nodeData);
-
-            const zettelkastenPanesSaveElements = [];
+            const zetPanes = [];
             window.codeMirrorInstances.forEach( (instance, index)=>{
-                const content = instance.getValue();
                 const name = App.zetPanes.getPaneName('zet-pane-' + (index + 1));
-                const paneSaveElement = `<div id="zettelkasten-pane-${index}" data-pane-name="${encodeURIComponent(name)}" style="display:none;">${encodeURIComponent(content)}</div>`;
-                zettelkastenPanesSaveElements.push(paneSaveElement);
+                zetPanes.push({ name, content: instance.getValue() });
             });
 
-            return nodeData + zettelkastenPanesSaveElements.join('') + this.#collectAdditionalSaveObjects();
+            const edges = {};
+            for (const edgeKey in Graph.edges) {
+                edges[edgeKey] = Edge.dataForEdge(Graph.edges[edgeKey])
+            }
+
+            const coords = Graph.getCoords();
+            const inputValues = App.tabEdit.getDictValues();
+            const locations = App.viewLocations.model.get('');
+            const nodes = this.#nodesData;
+            this.#nodesData = {};
+            return { coords, edges, inputValues, locations, nodes, nodesHtml, zetPanes };
         }
 
         #handleTitle(title, isExisting){
@@ -680,68 +738,68 @@ View.Graphs = class {
     }
 
     static BlobSaver = class {
-        #prevBlobs = {};
+        #dictMetaOld = {};
+        hasModified = false;
         #proms = [];
-        #dictMeta = null;
         constructor(mom, graphId){
+            this.dictMeta = mom.#blobs[graphId];
             this.graphId = graphId;
             this.mom = mom;
         }
 
-        save(){
-            this.#prevBlobs = {...this.mom.#blobs[this.graphId]};
-            Graph.forEachNode(this.#pushPromSaveBlobForNode, this);
-            return Promise.all(this.#proms).then(this.#cleanStored);
+        cleanStored(){
+            return Promise.all(this.#proms).then(this.#cleanStored)
         }
         #cleanStored = ()=>{
-            const dictMeta = this.#dictMeta;
-            if (!dictMeta) return;
-
+            const dictMeta = this.dictMeta;
             const stored = this.mom.#stored;
 
-            const orphans = this.#prevBlobs;
+            const orphans = this.#dictMetaOld;
             for (const blobId in orphans) {
+                this.hasModified = true;
                 delete dictMeta[blobId];
                 stored.deleteBlob(blobId);
                 Logger.info("Deleted blob:", orphans[blobId].title);
             }
+            if (!this.hasModified) return;
 
-            if (Object.keys(dictMeta).length < 1) {
-                stored.deleteBlobMeta(this.graphId)
-            }
-            return stored.saveBlobMeta(this.graphId, dictMeta);
+            return (Object.keys(dictMeta).length < 1)
+                 ? stored.deleteBlobMeta(this.graphId)
+                 : stored.saveBlobMeta(this.graphId, dictMeta);
         }
-        #pushPromSaveBlobForNode(node){
-            if (!node.blob) return;
 
-            if (this.#dictMeta && this.#dictMeta[node.blob]) {
-                delete this.#prevBlobs[node.blob];
-                return;
-            }
+        save(){
+            this.#dictMetaOld = {...this.dictMeta};
+            Graph.forEachNode(this.saveBlobForNode, this);
+            return this.cleanStored();
+        }
+        saveBlobForNode(node){
+            const blobId = node.blob;
+            if (!blobId) return;
 
-            this.#proms.push(this.#saveBlobForNode(node));
+            if (this.#dictMetaOld[blobId]) delete this.#dictMetaOld[blobId];
+            else this.#proms.push(this.#saveBlobForNode(node));
         }
         #saveBlobForNode(node){
             return fetch(node.view.innerContent.firstChild.src)
                 .then( (res)=>res.blob() )
-                .then(this.saveNodeItsBlob.bind(this, node))
+                .then(this.#saveNodeItsBlob.bind(this, node))
                 .catch(Logger.err.bind(Logger, "Failed to save blob:"))
         }
 
         saveNodeItsBlob(node, blob){
+            this.#proms.push(this.#saveNodeItsBlob(node, blob))
+        }
+        #saveNodeItsBlob(node, blob){
+            this.hasModified = true;
             const mom = this.mom;
             const meta = mom.#makeMetaForBlobOfTitle(blob, node.getTitle());
-
-            if (!this.#dictMeta) {
-                this.#dictMeta = mom.#blobs[this.graphId] ||= {}
-            }
-            const blobs = this.#dictMeta;
             const blobId = node.blob = meta.blobId;
-            blobs[blobId] = meta;
 
-            const stored = mom.#stored;
-            stored.saveBlobMeta(this.graphId, blobs);
-            return stored.saveBlobData(blobId, blob);
+            this.dictMeta ||= (mom.#blobs[this.graphId] = {});
+            this.dictMeta[blobId] = meta;
+
+            return mom.#stored.saveBlobData(blobId, blob);
         }
     }
 
@@ -752,57 +810,63 @@ View.Graphs = class {
         App.zetPanes.resetAllPanes();
     }
 
-    #loadGraph(text, importer){
+    #loadGraph(data, importer){
+        const isOld = (typeof data === 'string');
         this.#clearGraph();
 
         const div = Html.new.div();
-        div.innerHTML = text.replaceAll(/src=\"blob:[^\"]*\"/g, 'src=""');
+        div.innerHTML = (isOld ? data : data.nodesHtml)
+                        .replaceAll(/src=\"blob:[^\"]*\"/g, 'src=""');
 
-        // Check for the previous single-tab save object
+        // DEPRECATED
         const zettelSaveElem = div.querySelector("#zettelkasten-save");
         if (zettelSaveElem) zettelSaveElem.remove();
-
-        // Check for the new multi-pane save objects
         const zettelkastenPaneSaveElements = div.querySelectorAll("[id^='zettelkasten-pane-']");
         zettelkastenPaneSaveElements.forEach(Elem.remove);
 
-        this.#saver.restoreAdditionalSaveObjects(div);
+        if (!isOld) this.#saver.restoreAdditionalSaveObjects(data);
+        else this.#saver.restoreAdditionalSaveObjectsOld(div);
 
         const newNodes = [];
         for (const child of div.children) {
-            const node = new Node(child);
+            const data = this.#saver.getNodeData(child.dataset.viewId);
+            const node = new Node(child, data);
             newNodes.push(node);
             Graph.addNode(node);
         }
 
-        Elem.forEachChild(div, this.#populateDirectionalityMap, this);
-
+        const edgesData = data.edges;
+        if (edgesData) {
+            for (const edgeKey in edgesData) {
+                Graph.addEdgeFromData(edgesData[edgeKey])
+            }
+        }
         for (const node of newNodes) {
             Graph.appendNode(node);
-            node.init();
+            node.init(); // DEPRECATED
             this.#reconstructSavedNode(node, importer);
             node.sensor = new NodeSensor(node, 3);
         }
 
+        this.#saver.reset();
+
+        // DEPRECATED
         if (zettelSaveElem) {
             const zettelContent = decodeURIComponent(zettelSaveElem.innerHTML);
             App.zetPanes.restorePane("Zettelkasten Save", zettelContent);
         }
-
         zettelkastenPaneSaveElements.forEach((elem) => {
             const paneContent = decodeURIComponent(elem.innerHTML);
             const paneName = decodeURIComponent(elem.dataset.paneName);
             App.zetPanes.restorePane(paneName, paneContent);
         });
+        if (isOld) return this;
+
+        data.zetPanes.forEach( (pane)=>{
+            App.zetPanes.restorePane(pane.name, pane.content)
+        });
 
         return this;
-    }
-
-    #populateDirectionalityMap(nodeElement){
-        const edges = nodeElement.dataset.edges;
-        if (!edges) return;
-
-        JSON.parse(edges).forEach(Graph.setEdgeDirectionalityFromData, Graph);
     }
 
     #reconstructSavedNode(node, importer){
@@ -811,7 +875,7 @@ View.Graphs = class {
         if (node.isLink) (new LinkNode).init(node);
         if (node.isFileTree) FileTreeNode.init(node);
         if (node.blob) {
-            const prom = (!importer) ? this.#stored.blobForBlobId(node.blob)
+            const prom = (!importer) ? this.#stored.blobByBlobId(node.blob)
                        : Promise.resolve(importer.blobForNode(node));
             prom.then(this.#applyBlobToNode.bind(this, node));
         }

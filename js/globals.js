@@ -54,6 +54,7 @@ class Stored {
     delete(key){ return this.table.removeItem(String(key) ?? this.name) }
     load(key){ return this.table.getItem(String(key) ?? this.name) }
     save(key, val){
+        Logger.debug('store', key, '=', val);
         return this.table.setItem(
             (val !== undefined ? String(key) : this.name),
             val ?? key
@@ -117,32 +118,62 @@ var controls = {
 };
 
 class Settings {
+    static Listeners = class {
+        #cbs = [];
+        #cts = [];
+        add(cb, ct){
+            this.#cbs.push(cb);
+            this.#cts.push(ct);
+        }
+        callForVals(newVal, oldVal){
+            const cbs = this.#cbs;
+            const cts = this.#cts;
+            const len = cbs.length;
+            for (let i = 0; i < len; i += 1) {
+                cbs[i].call(cts[i], newVal, oldVal)
+            }
+        }
+    }
+
+    #listeners = {};
+    #save = {};
     #stored = new Stored('settings');
     constructor(){
-        const defaults = Settings.default;
-        for (const name in defaults) {
+        const stored = this.#stored;
+        for (const name in Settings.default) {
+            this.#save[name] = debounce(stored.save.bind(stored, name), 300);
             Object.defineProperty(this, name, {
                 get: this.get.bind(this, '_' + name),
                 set: this.set.bind(this, name)
-            })
+            });
         }
 
         this.init();
-        this.#stored.table.iterate(this.#set.bind(this));
+        this.#stored.table.iterate(this.assign.bind(this));
     }
 
     clear(){ this.#stored.clear() }
     init(){
         const defaults = Settings.default;
-        for (const name in defaults) this.#set(defaults[name], name);
+        for (const name in defaults) this.assign(defaults[name], name);
     }
 
     get(key){ return this[key] }
     set(name, val){
-        this.#stored.save(name, val);
-        this.#set(val, name);
+        const oldVal = this[name];
+        if (val === oldVal) return;
+
+        this.#save[name](val);
+        this.assign(val, name);
+
+        const listeners = this.#listeners[name];
+        if (listeners) listeners.callForVals(val, oldVal);
     }
-    #set(val, name){ this['_' + name] = val }
+    assign(val, name){ this['_' + name] = val }
+
+    onChange(name, cb, ct){
+        (this.#listeners[name] ||= new Settings.Listeners()).add(cb, ct)
+    }
 }
 Settings.default = {
     zoomSpeed: 0.001,
@@ -166,6 +197,8 @@ Settings.default = {
     zoomSpeedMultiplier: 1,
 
     //slider adjustment
+    exponent: 2,
+    fractal: 'julia',
     maxLines: 128,
     renderLength: 50,
     renderQuality: 16,
@@ -202,8 +235,19 @@ Settings.default = {
     maxDist: 4,
     orbitStepRate: 2,
 
-    innerOpacity: 1,
-    outerOpacity: 1,
+    rColor: '#ff0000',
+    gColor: '#00ff00',
+    bColor: '#0000ff',
+    backColor: '#000000',
+
+    brightness: 128,
+    saturation: 127,
+
+    outerOpacity: 100,
+    innerOpacity: 100,
+
+    inversion: 0,
+    hue: 0,
 
     defaultSearchEngine: 'google', // Brave, Bing, DuckDuckGo, Google
 
@@ -591,16 +635,20 @@ function clearTextSelections() {
     }
 }
 
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        function later(){
-            clearTimeout(timeout);
-            func(...args);
-        }
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+function debounce(func, delay){
+    let times = 0;
+    let _args = [];
+    return function exec(...args){
+        const timeout = (args[0] === exec);
+        if (!timeout) _args = args;
+
+        times += (timeout ? -1 : 1);
+        if (times > 1) return times = 2;
+        if (times > 0) return setTimeout(exec, delay, exec);
+
+        func(..._args);
+        _args = [];
+    }
 }
 
 const TextArea = {

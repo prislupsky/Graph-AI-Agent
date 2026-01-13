@@ -4,36 +4,42 @@ class Node {
     anchor = new vec2(0, 0);
     anchorForce = 0;
     createdAt = new Date().toISOString();
-    edges = [];
+    edges = {};
     init = Function.nop;
     mouseAnchor = new vec2(0, 0);
     save_extras = [];
     view = null;
 
-    constructor(thing, createEdges = true){
+    #processData = (nodeData, extraData, edgesData)=>{
+        const vecProps = ['anchor', 'mouseAnchor', 'vel', 'pos', 'force'];
+        for (const k in nodeData) {
+            const val = nodeData[k];
+            this[k] = (vecProps.includes(k) ? new vec2(val) : val);
+        }
+
+        if (extraData) {
+            for (const e of extraData) Node.Extensions[e.f](this, e.a)
+        }
+
+        // DEPRECATED
+        if (edgesData) {
+            this.init = ()=>{
+                for (const edgeData of edgesData) Graph.addEdgeFromData(edgeData)
+            }
+        }
+    }
+    constructor(thing, data){
         if (thing) {
             this.content = thing;
-            const dataset = thing.dataset;
-
-            const nodeData = JSON.parse(dataset.node_json)
-            const vecProps = ['anchor', 'mouseAnchor', 'vel', 'pos', 'force'];
-            for (const k in nodeData) {
-                const val = nodeData[k];
-                this[k] = (vecProps.includes(k) ? new vec2(val) : val);
-            }
-
-            if (dataset.node_extras) {
-                const extraData = JSON.parse(dataset.node_extras);
-                for (const e of extraData) Node.Extensions[e.f](this, e.a);
-            }
-
-            if (dataset.edges !== undefined && createEdges) {
-                const edgesData = JSON.parse(dataset.edges);
-                this.init = ()=>{
-                    for (const edgeData of edgesData) {
-                        edgeFromJSON(edgeData)
-                    }
-                };
+            if (data) {
+                this.#processData(data.node, data.extras, data.edges)
+            } else { // DEPRECATED
+                const dataset = thing.dataset;
+                this.#processData(
+                    JSON.parse(dataset.node_json),
+                    dataset.node_extras && JSON.parse(dataset.node_extras),
+                    dataset.edges && JSON.parse(dataset.edges)
+                );
             }
         } else {
             this.content = Html.new.div();
@@ -62,24 +68,37 @@ class Node {
         On.mouseup(document, this.onMouseUp);
         On.wheel(div, this.onWheel);
     }
-    toJSON() {
-        return JSON.stringify({...this}, (k, v) => {
-            if (k === "content" || k === "edges" || k === "save_extras" || k === "viewer" ||
-                k === "aiResponseEditor" || k === "aiNodeMessageLoop" || k === "sensor" || k === "responseHandler" ||
-                k === "view" || k === "agent" || k === "typeNode") {
-                return undefined;
-            }
-            return v;
-        });
-    }
-    updateNodeData() {
-        const saveExtras = [];
-        for (const extra of this.save_extras) {
-            saveExtras.push(typeof extra === "function" ? extra(this) : extra);
+
+    #invalidKeys = {
+        aiResponseEditor: true, aiNodeMessageLoop: true,
+        controller: true, edges: true, save_extras: true,
+        sensor: true, view: true, typeNode: true, viewer: true
+    };
+    toJSON(){
+        const dict = {};
+        for (const k in {...this}) {
+            if (this.#invalidKeys[k]) continue;
+
+            const name = this[k]?.constructor?.name || '';
+            if (name === 'Function' || name.startsWith('HTML')) continue;
+
+            dict[k] = this[k];
         }
-        this.content.dataset.node_extras = JSON.stringify(saveExtras);
-        this.content.dataset.node_json = this.toJSON();
+        return dict;
     }
+    dataObj(){
+        // DEPRECATED
+        delete this.content.dataset.edges;
+        delete this.content.dataset.node_extras;
+        delete this.content.dataset.node_json;
+
+        const extras = [];
+        for (const extra of this.save_extras) {
+            extras.push(typeof extra === "function" ? extra(this) : extra);
+        }
+        return { extras, node: this.toJSON() };
+    }
+
     push_extra_cb(f) {
         this.save_extras.push(f);
         return this;
@@ -186,7 +205,7 @@ class Node {
         this.pos = p;
         this.anchor = this.pos;
 
-        if (App.nodeMode === 1) updateNodeEdgesLength(this);
+        if (App.nodeMode === 1) this.forEachEdge(Edge.updateLength);
 
         if (!App.selectedNodes.uuids.has(this.uuid)) return;
 
@@ -194,7 +213,7 @@ class Node {
             if (node.uuid === this.uuid || node.anchorForce === 1) return;
 
             node.vel = velocity;
-            if (App.nodeMode === 1) updateNodeEdgesLength(node);
+            if (App.nodeMode === 1) node.forEachEdge(Edge.updateLength);
         });
     }
 
@@ -345,7 +364,7 @@ class Node {
                         node.pos = node.pos.lerpto(Graph.vecToZ(), 1 - amount);
                     }
 
-                    updateNodeEdgesLength(node);
+                    node.forEachEdge(Edge.updateLength);
                 });
             } else {
                 this.scale *= amount;
@@ -371,62 +390,29 @@ class Node {
     }
     getTitle(){ return this.view.titleInput.value }
 
-    getEdgeDirectionalities() {
-        return this.edges.map( (edge)=>({
-            edge,
-            directionality: edge.getDirectionRelativeTo(this)
-        }) );
-    }
+    forEachEdge(cb, ct){ Object.forEach(this.edges, cb, ct) }
 
-    addEdge(edge) {
-        this.edges.push(edge);
-        this.updateEdgeData();
-    }
-    static addEdgeThis(node){ node.addEdge(this) }
+    removeEdgeByTitle(title){
+        for (const uuid in this.edges) {
+            if (!Node.byUuid(uuid).getTitle() === title) continue;
 
-    updateEdgeData() {
-        const es = JSON.stringify(this.edges.map(Edge.dataForEdge));
-        Logger.debug("Saving edge data:", es);
-        this.content.dataset.edges = es;
-    }
-
-    removeEdgeByIndex(index){
-        this.edges[index].remove();
-        this.edges.splice(index, 1);
-    }
-    removeEdgeByTitle(targetTitle) {
-        const edges = this.node.edges;
-        let removed = false;
-
-        for (let i = edges.length - 1; i >= 0; i--) {
-            if (edges[i].pts.some(pt => pt.getTitle() === targetTitle)) {
-                Logger.debug(`Disconnecting edge to node: ${targetTitle}`);
-                edges[i].remove(); // Directly remove the edge
-                removed = true;
-            }
+            Logger.debug("Disconnecting edge to node:", title);
+            this.edges[uuid].remove(); // Directly remove the edge
+            return;
         }
 
-        if (!removed) {
-            Logger.warn(`No edge found connecting to node: ${targetTitle}`);
-        }
+        Logger.warn("No edge found connecting to node:", title);
     }
-    removeConnectedNodes(nodes) {
-        const nodeUUIDs = new Set(nodes.map(node => String.uuidOf(node)));
-
-        for (let i = this.edges.length - 1; i >= 0; i--) {
-            const edge = this.edges[i];
-            if (edge.pts.some(pt => nodeUUIDs.has(pt.uuid))) {
-                edge.remove();
-            }
+    disconnectNodes(nodes){
+        const nodeUuids = new Set(nodes.map(String.uuidOf));
+        for (const uuid in this.edges) {
+            if (nodeUuids.has(uuid)) this.edges[uuid].remove()
         }
     }
 
     remove(){ Graph.deleteNode(this) }
 
     static byUuid(uuid){ return Graph.nodes[uuid] }
-    static filterEdgesToThis(node){
-        node.edges = node.edges.filter( (edge)=>!edge.pts.includes(this) )
-    }
     static getType(node){
         if (node.isTextNode) return 'text';
         if (node.isLLM) return 'llm';
@@ -434,13 +420,6 @@ class Node {
         return 'base';
     }
     static remove(node){ node.remove() }
-    static removeThisEdge(node){
-        const index = node.edges.indexOf(this);
-        if (index < 0) return;
-
-        node.edges.splice(index, 1);
-        node.updateEdgeData();
-    }
 }
 
 Node.Extensions = {
