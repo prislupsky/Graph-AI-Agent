@@ -219,7 +219,6 @@ Menu.Context.prototype.setupSuggestions = function(pageX, pageY){
         menu.clear();
         menu.position(pageX, pageY);
 
-        const nodeActions = NodeActions.forNode(node);
         getNodeMethodSuggestions(value, node).forEach( (suggestion)=>{
             menu.addSuggestion(
                 getDynamicActionDetails(suggestion, node).displayText,

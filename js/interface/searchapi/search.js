@@ -209,7 +209,6 @@ Embeddings.search = async function(searchTerm, maxNodesOverride){
         Logger.debug("Cosine Similarity:", cosineSimilarity);
 
         const similarityThreshold = -1;
-        const keywordMatchPercentage = 0.5;
 
         if (weightedTitleScore + weightedContentScore > 0 || cosineSimilarity > similarityThreshold) {
             matched.push({

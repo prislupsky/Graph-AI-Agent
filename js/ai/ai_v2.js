@@ -125,7 +125,6 @@ class AiCall {
     async #callchatLLMnode(){
         const node = this.node;
         const requestId = generateRequestId();
-        let streamedResponse = ""; // Local streamedResponse for this node's request
 
         function onBeforeCall() {
             node.aiResponding = true;

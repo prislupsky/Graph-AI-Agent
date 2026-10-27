@@ -397,41 +397,12 @@ class NodeView {
 
     setResizeEventListeners(){
         const node = this.model;
-        const inverse2DMatrix = (matrix) => {
-            const det = matrix[0] * matrix[3] - matrix[1] * matrix[2];
-            if (det === 0) return null;
-
-            const invDet = 1 / det;
-            return [
-                matrix[3] * invDet,
-                -matrix[1] * invDet,
-                -matrix[2] * invDet,
-                matrix[0] * invDet,
-            ];
-        };
-
-        const getDivInverseTransformMatrix = (div) => {
-            const transform = window.getComputedStyle(div).transform;
-            if (transform === 'none') return [1, 0, 0, 1];
-
-            const matrix = transform
-                .split('(')[1]
-                .split(')')[0]
-                .split(',')
-                .map(parseFloat)
-                .slice(0, 4);
-            return inverse2DMatrix(matrix);
-        };
-
         let windowDiv = this.div;
 
         let startX;
         let startY;
         let startWidth;
         let startHeight;
-
-        let isMouseMoving = false;
-        let resizeOverlay = null;
 
         let lastCall = 0;
         const throttleMs = 8; // ~125 FPS cap
@@ -444,8 +415,6 @@ class NodeView {
                 handleMouseUp();
                 return;
             }
-
-            isMouseMoving = true;
 
             // Calculate the change in position of the mouse considering the accumulated transform matrix
             const scalingFactors = scalingFactorsFromElem(windowDiv);
@@ -516,13 +485,11 @@ class NodeView {
             startY = e.pageY;
             startWidth = parseInt(document.defaultView.getComputedStyle(windowDiv).width, 10);
             startHeight = parseInt(document.defaultView.getComputedStyle(windowDiv).height, 10);
-            isMouseMoving = true; // Indicate that a resize is in progress
             On.mousemove(document, handleMouseMove);
             On.mouseup(document, handleMouseUp);
         });
 
         const handleMouseUp = () => {
-            isMouseMoving = false;
             Off.mousemove(document, handleMouseMove);
             Off.mouseup(document, handleMouseUp);
             // Remove the overlay via the helper

@@ -33,22 +33,18 @@ async function updatePublicKeys() {
         return { stripePublicKey, turnstilePublicKey };
     }
 
-    try {
-        const response = await window.NeuriteBackend.get('/public-keys');
-        if (!response.ok) throw new Error("Failed to retrieve public keys from the server.");
-        const keys = await response.json();
-        ({ stripePublicKey, turnstilePublicKey } = keys);
+    const response = await window.NeuriteBackend.get('/public-keys');
+    if (!response.ok) throw new Error("Failed to retrieve public keys from the server.");
+    const keys = await response.json();
+    ({ stripePublicKey, turnstilePublicKey } = keys);
 
-        if (!stripePublicKey || !turnstilePublicKey) {
-            throw new Error("Incomplete public keys received from the server.");
-        }
-
-        localStorage.setItem('stripePublicKey', stripePublicKey);
-        localStorage.setItem('turnstilePublicKey', turnstilePublicKey);
-        return { stripePublicKey, turnstilePublicKey };
-    } catch (error) {
-        throw error;
+    if (!stripePublicKey || !turnstilePublicKey) {
+        throw new Error("Incomplete public keys received from the server.");
     }
+
+    localStorage.setItem('stripePublicKey', stripePublicKey);
+    localStorage.setItem('turnstilePublicKey', turnstilePublicKey);
+    return { stripePublicKey, turnstilePublicKey };
 }
 
 async function signIn() {

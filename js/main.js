@@ -50,7 +50,6 @@ globalThis.Logger = new (class {
         const len = this.#levels.length;
         this.#level = Math.min(Math.max(-len, newLevel), len);
         this.#levels.forEach(this.#setFuncPerLevel, this);
-        return this.#level;
     }
     get levelId(){ return this.#levels[this.#level - 1]?.id }
     set levelId(id){

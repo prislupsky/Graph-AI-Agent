@@ -185,15 +185,6 @@ class TopNChunksTooltip extends Tooltip {
         this.currentAiResponseDiv = null;
         super.hideTooltip();
     }
-
-    removeHighlights(element) {
-        const highlights = element.querySelectorAll(`.${this.highlightClass}`);
-        highlights.forEach(highlight => {
-            const parent = highlight.parentNode;
-            parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
-            parent.normalize();
-        });
-    }
 }
 
 function testToolTipRegex(text1, text2, minMatchLength = 5, maxMatchLength = 20) {
