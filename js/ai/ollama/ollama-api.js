@@ -77,7 +77,6 @@ async function pullOllamaModelWithProgress(name, onProgress) {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
-        let receivedLength = 0;
         let totalLength = 0;
 
         while (true) {
@@ -85,7 +84,6 @@ async function pullOllamaModelWithProgress(name, onProgress) {
             if (done) break;
 
             const chunk = decoder.decode(value);
-            receivedLength += chunk.length;
 
             const lines = chunk.split('\n').filter(line => line.trim() !== '');
             for (const line of lines) {

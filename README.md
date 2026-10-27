@@ -1,18 +1,21 @@
 # 🌐 **[Graph of Thought - AI Agent]** 🌐
 
 🌱 This is an open-source project in active development.
+
+Graph-AI-Agent is based on [Neurite](https://github.com/satellitecomponent/Neurite) by satellitecomponent, released under the [MIT License](LICENSE).
 <table>
   <tr>
     <td>
       <h2>Table of Contents</h2>
       <ol>
         <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#run-locally">Run Locally</a></li>
         <li><a href="#key-features">Key Features</a></li>
-        <li><a href="#how-to-use-Graph-AI-Agent">How to Use Graph-AI-Agent</a></li>
+        <li><a href="#how-to-use-graph-ai-agent">How to Use Graph-AI-Agent</a></li>
         <li><a href="#synchronized-knowledge-management">Synchronized Knowledge Management</a></li>
         <li><a href="#fractalgpt">FractalGPT</a></li>
         <li><a href="#multi-agent-ui">Multi-Agent UI</a></li>
-        <li><a href="#Graph-AI-Agent-desktop">Graph-AI-Agent Desktop</a></li>
+        <li><a href="#graph-ai-agent-desktop">Graph-AI-Agent Desktop</a></li>
         <li><a href="#neural-api">Neural API</a></li>
         <li><a href="#join-the-conversation">Join the Conversation</a></li>
         <li><a href="#gallery">Gallery</a></li>
@@ -25,7 +28,7 @@
 
 ## Bridging Fractals and Thought
 
-### 💡 **[Graph-AI-Agent.network](https://Graph-AI-Agent.network/) unleashes a new dimension of digital interface...**
+### 💡 **Graph-AI-Agent unleashes a new dimension of digital interface...**
 
 ### ***...the fractal dimension.***
 
@@ -34,7 +37,7 @@
 For over two years we've been iterating out a virtually limitless workspace that blends the mesmerizing complexity of fractals with contemporary mind-mapping technique.
 
 
-> 📢 **Major Update:**  <a href="#Graph-AI-Agent-desktop"><strong>Graph-AI-Agent Desktop</strong></a> 
+> 📢 **Major Update:**  <a href="#graph-ai-agent-desktop"><strong>Graph-AI-Agent Desktop</strong></a> 
 
 <table>
   <tr>
@@ -46,20 +49,20 @@ For over two years we've been iterating out a virtually limitless workspace that
     </td>
     <td valign="top" width="50%">
       <p align="center">
-        <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/11815c92-0b8c-4f37-8f4d-6f300b380813" alt="whyfractals" width="100%">
+        <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/11815c92-0b8c-4f37-8f4d-6f300b380813" alt="whyfractals" width="100%">
       </p>
     </td>
   </tr>
   <tr>
     <td valign="top" width="50%">
       <p align="center">
-        <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/65afd5d3-3078-4d17-ac9f-a75fee9784ac" alt="whynodes" height="400" >
+        <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/65afd5d3-3078-4d17-ac9f-a75fee9784ac" alt="whynodes" height="400" >
       </p>
     </td>
     <td valign="top" width="50%">
       <h3><code>Why Nodes?</code></h3>
       <p>Nodes represent text, images, videos, code, and AI agents. Together, they thread a personalized microcosm of your thoughts and inspirations. 🔭.</p>
-      <p><a href="https://Graph-AI-Agent.network/">Graph-AI-Agent.network</a> connects physics simulation of graphs with an underlying fractal topology to kinematically define interactive, iterative, and modular graphs of ideation.</p>
+      <p>Graph-AI-Agent connects physics simulation of graphs with an underlying fractal topology to kinematically define interactive, iterative, and modular graphs of ideation.</p>
     </td>
   </tr>
 </table>
@@ -69,7 +72,25 @@ For over two years we've been iterating out a virtually limitless workspace that
 
 Movements through the fractal are no longer interrupted at each step. Instead, the rendering persists and regenerates as you interact...
 
-## [Graph-AI-Agent.network](https://Graph-AI-Agent.network/) is unique in its ability to seamlessly navigate the Mandelbrot set in real time! 🚀
+## Graph-AI-Agent is unique in its ability to seamlessly navigate the Mandelbrot set in real time! 🚀
+
+# Run Locally
+
+Requires [Node.js](https://nodejs.org/) 18 or later.
+
+```bash
+npm install
+npm start          # serves the app at http://localhost:8080
+```
+
+`npm run build` writes a static build to `dist/`.
+
+Optional features (web scraping, Wikipedia and Wolfram Alpha search, the AI proxy, file-tree access) use the local servers in [`localhost_servers`](localhost_servers/README.md):
+
+```bash
+cd localhost_servers
+npm start          # installs each server's dependencies on first run
+```
 
 # Key Features
 
@@ -150,7 +171,7 @@ Movements through the fractal are no longer interrupted at each step. Instead, t
 
 ## `How to Use Graph-AI-Agent`
 
-### 📚 [Graph-AI-Agent](https://Graph-AI-Agent.network/) lets you embed anything - text, photos, audio, video, PDFs, AI, and webpages - directly within the Mandelbrot set. 
+### 📚 Graph-AI-Agent lets you embed anything - text, photos, audio, video, PDFs, AI, and webpages - directly within the Mandelbrot set. 
 
  `Drag and drop` or `Paste` local files and web content straight into the fractal.
 
@@ -258,7 +279,7 @@ Custom `## title` and `[[reference]]` tags can be set in the Zettelkasten Settin
 - `Ai Tutorial`: The HOW-TO checkbox sends a context message to the AI that allows it to answer some questions about Graph-AI-Agent.
 
 <p align="center">
-   <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/c000566f-01ae-4c89-a2ab-18e0593b08b7" alt="whynodes3" height="400" >
+   <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/c000566f-01ae-4c89-a2ab-18e0593b08b7" alt="whynodes3" height="400" >
 </p>
 
 ## `Synchronized Knowledge Management`
@@ -266,7 +287,7 @@ Custom `## title` and `[[reference]]` tags can be set in the Zettelkasten Settin
   <tr>
     <!-- Top Left: Introduction and Main Features -->
     <td valign="top" width="50%">
-      <h3><a href="https://Graph-AI-Agent.network/">Graph-AI-Agent.network</a></h3>
+      <h3>Graph-AI-Agent</h3>
       <p><a href="https://en.wikipedia.org/wiki/Markdown">Markdown</a> formatted, <a href="https://en.wikipedia.org/wiki/File_synchronization">bi-directional synchronization</a> between UI-focused <a href="https://en.wikipedia.org/wiki/Mind_map">Mind-Mapping</a> and text-based <a href="https://en.wikipedia.org/wiki/Hyperlink">hyperlinking</a>.</p>
       <ul>
         <li><strong>FractalGPT</strong>: Engage with non-linear, rhizomatic memory through our biomimetic interface.</li>
@@ -278,7 +299,7 @@ Custom `## title` and `[[reference]]` tags can be set in the Zettelkasten Settin
     <!-- Top Right: Image -->
     <td valign="top" width="50%">
       <p align="center">
-         <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/da23628a-d3e2-4fe6-8dda-6f3f15e850f0" alt="SKM3" width="100%">
+         <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/da23628a-d3e2-4fe6-8dda-6f3f15e850f0" alt="SKM3" width="100%">
       </p>
     </td>
   </tr>
@@ -286,7 +307,7 @@ Custom `## title` and `[[reference]]` tags can be set in the Zettelkasten Settin
     <!-- Bottom Left: image 2 -->
     <td valign="top" width="50%">
        <p align="center">
-         <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/3718856b-fa35-4b5a-bb78-3f0507712ad1" alt="SKM" width="100%">
+         <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/3718856b-fa35-4b5a-bb78-3f0507712ad1" alt="SKM" width="100%">
       </p>
     </td>
     <!-- Bottom Right: Additional Info or CTA -->
@@ -325,8 +346,8 @@ Build your Zettelkasten through UI interactions in the Mind Map, and reciprocall
     <!-- Right: Image -->
     <td valign="top" width="55%">
       <p align="center">
-         <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/6d8684cf-934a-4669-b16d-1df782b6017a" alt="lucky999" width="100%">
-         <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/9f820226-bc14-4f05-8ad1-5963271b6836" alt="FractalGPT" width="100%">
+         <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/6d8684cf-934a-4669-b16d-1df782b6017a" alt="lucky999" width="100%">
+         <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/9f820226-bc14-4f05-8ad1-5963271b6836" alt="FractalGPT" width="100%">
       </p>
     </td>
   </tr>
@@ -368,9 +389,9 @@ Build your Zettelkasten through UI interactions in the Mind Map, and reciprocall
     <!-- Right: Image -->
     <td valign="top" width="50%">
       <p align="center">
-        <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/bada5e60-73de-41de-8a64-10e7451393b0" alt="Multi-Agent Chat Networks" width="100%">
-                <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/2f6f16be-659c-4048-aa8e-3aa7bcc73f35" alt="Multi-Agent Chat Networks3" width="100%">
-        <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/baf78511-3d07-41d0-afc8-93ad80b693ab" alt="Multi-Agent Chat Networks2" width="100%">
+        <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/bada5e60-73de-41de-8a64-10e7451393b0" alt="Multi-Agent Chat Networks" width="100%">
+                <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/2f6f16be-659c-4048-aa8e-3aa7bcc73f35" alt="Multi-Agent Chat Networks3" width="100%">
+        <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/baf78511-3d07-41d0-afc8-93ad80b693ab" alt="Multi-Agent Chat Networks2" width="100%">
       </p>
     </td>
   </tr>
@@ -456,18 +477,7 @@ All API keys can be input through the AI tab in the menu dropdown.
 # Unchain from the traditional limitations of a browser
 
 Forget tabs! Graph-AI-Agent is all about graphs. Open as many browser windows as you want and display them side by side in our infinite fractal canvas.
-## Download the latest version of **Graph-AI-Agent Desktop** ↓
-<table align="center">
-  <tr>
-    <td><a href="https://github.com/prislupsky/Graph-AI-Agent/releases/latest/download/Graph-AI-Agent.Setup.1.0.0.exe" target="_blank">Windows</a></td>
-  </tr>
-  <tr>
-    <td><a href="https://github.com/prislupsky/Graph-AI-Agent/releases/latest/download/Graph-AI-Agent-1.0.0.AppImage" target="_blank">Linux</a></td>
-  </tr>
-  <tr>
-    <td><a href="https://github.com/prislupsky/Graph-AI-Agent/releases/latest/download/Graph-AI-Agent-1.0.0-arm64.dmg" target="_blank">macOS</a></td>
-  </tr>
-</table>
+No desktop builds are published from this repository yet. The Electron source lives on the [`electron`](https://github.com/prislupsky/Graph-AI-Agent/tree/electron) branch.
 
 ### The desktop release includes a full web browsing experience within link nodes — no more restrictions on which links you can open.
 
@@ -482,7 +492,7 @@ This is a highly experimental feature in early release.
 
 *Windows requires clicking past the security warning on first open.
 <p align="center">
-<img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/609781ec-7440-479a-859c-9248fd60644f" alt="Graph-AI-Agentdemo1" width="60%">
+<img src="https://github.com/satellitecomponent/Neurite/assets/129367899/609781ec-7440-479a-859c-9248fd60644f" alt="Graph-AI-Agentdemo1" width="60%">
 </p>
 
 ## `Neural API`
@@ -491,7 +501,7 @@ This is a highly experimental feature in early release.
     <!-- Left: Image -->
     <td valign="top" width="40%">
       <p align="center">
-        <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/d45fe622-6dab-4e43-91c7-06e0d7cddaed" alt="neuralapi" width="100%">
+        <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/d45fe622-6dab-4e43-91c7-06e0d7cddaed" alt="neuralapi" width="100%">
       </p>
     </td>
     <!-- Right: Description of the Function Calling Panel -->
@@ -519,22 +529,20 @@ console.log(neuralAPI);</code></pre>
 </table>
 
 ## Join the Conversation
-See our contributing guidelines [here](https://github.com/prislupsky/Graph-AI-Agent/tree/local-ai).
-
 If you are a developer who is interested in contributing to this project, contact us at contactdendrite@gmail.com or visit our  [discord](https://discord.gg/6fdmDF8SmT) 🔗
 
 ## `Gallery`
 
 <p align="center">
-    <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/87816cad-1151-4f1a-8c66-ba5a5bd0b81e" alt="whyfractals3" width="70%">
-    <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/e77b2866-db77-41e9-ba08-e55d29f77404" alt="whyfractals2" width="70%">
-   <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/795da35f-93f3-471d-a4fa-26decec75168" alt="whyfractals" width="70%">
-   <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/7593dbcf-1eb7-415b-9f83-b817229f0c17" alt="whyfractals4" width="70%">
-    <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/d5800897-1eb8-4113-8a9e-75ce029eb67a" alt="whyfractals6" width="70%">
-  <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/fd7a9cb3-9ea6-435c-9b88-3d0189e6a304" alt="whyfractals5" width="70%">
-             <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/5504ea4e-7e73-4d9d-80d3-af411c615aea" alt="SKM" width="70%">
-  <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/4f93af1b-895c-48a5-8e7c-2da5cbddd6ac" alt="SKM3" width="70%">
-  <img src="https://github.com/prislupsky/Graph-AI-Agent/assets/129367899/02871c35-7f93-4226-87aa-4adcc296e0a8" alt="whynodes2" height="400">
+    <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/87816cad-1151-4f1a-8c66-ba5a5bd0b81e" alt="whyfractals3" width="70%">
+    <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/e77b2866-db77-41e9-ba08-e55d29f77404" alt="whyfractals2" width="70%">
+   <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/795da35f-93f3-471d-a4fa-26decec75168" alt="whyfractals" width="70%">
+   <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/7593dbcf-1eb7-415b-9f83-b817229f0c17" alt="whyfractals4" width="70%">
+    <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/d5800897-1eb8-4113-8a9e-75ce029eb67a" alt="whyfractals6" width="70%">
+  <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/fd7a9cb3-9ea6-435c-9b88-3d0189e6a304" alt="whyfractals5" width="70%">
+             <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/5504ea4e-7e73-4d9d-80d3-af411c615aea" alt="SKM" width="70%">
+  <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/4f93af1b-895c-48a5-8e7c-2da5cbddd6ac" alt="SKM3" width="70%">
+  <img src="https://github.com/satellitecomponent/Neurite/assets/129367899/02871c35-7f93-4226-87aa-4adcc296e0a8" alt="whynodes2" height="400">
 </p>
 <a href="https://star-history.com/#prislupsky/Graph-AI-Agent&Date">
 

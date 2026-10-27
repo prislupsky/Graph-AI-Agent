@@ -968,7 +968,7 @@ View.Graphs = class {
         }
         #onResponseError = (err)=>{
             Logger.err("Failed to load state from file:", err);
-            displayErrorMessage("Failed to load the requested graph state.");
+            alert("Failed to load the requested graph state.");
         }
     }
 

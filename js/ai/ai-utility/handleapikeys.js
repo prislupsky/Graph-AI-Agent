@@ -184,7 +184,7 @@ async function loadKeysFromFile() {
             const contents = await file.text();
 
             const keys = JSON.parse(contents);
-            for (providerId in Providers) {
+            for (const providerId in Providers) {
                 const provider = Providers[providerId];
                 const inputId = provider.inputId;
                 if (!inputId) continue;
@@ -203,7 +203,7 @@ async function loadKeysFromFile() {
 }
 
 function clearKeys() {
-    for (providerId in Providers) {
+    for (const providerId in Providers) {
         const provider = Providers[providerId];
         const inputId = provider.inputId;
         if (!inputId) continue;

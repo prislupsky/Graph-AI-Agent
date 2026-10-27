@@ -257,8 +257,6 @@ ${autoModePrompt}`;
 
     aiCall.exec()
     .then( ()=>{
-        aiLoadingIcon.style.display = 'none';
-
         if (node.shouldContinue && node.shouldAppendQuestion) {
             const hasConnectedAiNode = AiNode.calculateDirectionalityLogic(node).length > 0;
             if (hasConnectedAiNode) {
@@ -273,7 +271,7 @@ ${autoModePrompt}`;
     })
     .catch( (err)=>{
         Logger.err("While getting response:", err);
-        aiErrorIcon.style.display = 'block';
+        node.content.querySelector('#aiErrorIcon-' + node.index).style.display = 'block';
     });
 }
 
@@ -465,7 +463,7 @@ AiNode.MessageLoop = class {
                                 const remainder = nextLine.slice(atIndex + 1);
                                 const mention = remainder.split(/\s+/)[0];
 
-                                if (Mentions.isValid(mention, instance.node)) {
+                                if (AiNode.MessageLoop.Mentions.isValid(mention, instance.node)) {
                                     contentLines.push(nextLine.slice(0, atIndex));
                                     lines[i] = nextLine.slice(atIndex);
                                     i--;

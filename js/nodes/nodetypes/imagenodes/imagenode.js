@@ -1,7 +1,3 @@
-function isImageUrl(url) {
-    return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url);
-}
-
 Elem.resizeToFitHeight = function(elem, height){
     const aspectRatio = elem.naturalWidth / elem.naturalHeight;
     elem.style.width = (height * aspectRatio) + 'px';

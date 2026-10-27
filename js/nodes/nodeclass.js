@@ -377,13 +377,6 @@ class Node {
         }
         e.stopPropagation();
     }
-    disableEmbedPointerEvents(){this.setEmbedPointerEvents('none')};
-    enableEmbedPointerEvents(){ this.setEmbedPointerEvents('auto')};
-    setEmbedPointerEvents(value) {
-        this.content.querySelectorAll('iframe, webview').forEach(embed => {
-            embed.style.pointerEvents = value;
-        });
-    }
 
     getText(){
         return (this.textarea || this.contentEditableDiv)?.value || ''

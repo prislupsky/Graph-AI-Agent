@@ -135,8 +135,6 @@ Prompt.aiNodes = function(){
 Prompt.mindmap = function(){
     const { refTag, nodeTag } = tagValues;
     const closingBracket = getClosingBracket(refTag);
-    const refSnippet = (!isBracketLinks) ? `PRINT ${refTag}+JOIN(node.Refs, ', ');`
-                : `EACH ref IN node.Refs: PRINT ${refTag}+ref.node+${closingBracket}; END;`;
     const titles = (!isBracketLinks) ? refTag + " followed by comma-separated note titles"
                 : refTag + "Note Title" + closingBracket;
     const concept = (!isBracketLinks) ? refTag + " Principle B, Element D"

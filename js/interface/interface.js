@@ -326,7 +326,6 @@ class Interface {
             // Panning via scroll wheel
             Autopilot.stop();
             this.coordsLive = true;
-            let dest = Graph.vecToZ();
             const dp = toDZ(new vec2(e.deltaX, e.deltaY).scale(settings.panSpeed));
             regenAmount += Math.hypot(e.deltaX, e.deltaY);
             Graph.pan_incBy(dp);

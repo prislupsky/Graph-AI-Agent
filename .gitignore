@@ -3,4 +3,10 @@ dist/
 package-lock.json
 .vs
 .vscode
+.idea
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
 database.db

@@ -51,8 +51,8 @@ class Stored {
         });
     }
     clear(){ return this.table.clear() }
-    delete(key){ return this.table.removeItem(String(key) ?? this.name) }
-    load(key){ return this.table.getItem(String(key) ?? this.name) }
+    delete(key){ return this.table.removeItem(String(key ?? this.name)) }
+    load(key){ return this.table.getItem(String(key ?? this.name)) }
     save(key, val){
         Logger.debug('store', key, '=', val);
         return this.table.setItem(

@@ -43,12 +43,6 @@ class Graph {
         this.htmlEdges.append(edgeView.svgArrow, edgeView.svgBorder, edgeView.svgLink);
     }
     addNode(node){
-        let id = this.nodes.length;
-        let div = node.content;
-        /*div.setAttribute("onclick","(e)=>nodes["+id+"].onclick(e)");
-        div.setAttribute("onmousedown","(e)=>nodes["+id+"].onmousedown(e)");
-        div.setAttribute("onmouseup","(e)=>nodes["+id+"].onmouseup(e)");
-        div.setAttribute("onmousemove","(e)=>nodes["+id+"].onmousemove(e)");*/
         if (node.view) this.nodeViews[node.view.id] = node.view;
         this.nodes[node.uuid] = node;
         this.lastPos = node.pos;

@@ -7,7 +7,6 @@ const wolframMessage = `Based off the user message, arrive at a valid query to W
 let wolframCallCounter = 0;
 
 async function fetchWolfram(message, isAINode = false, node = null, wolframContext = "") {
-    let wolframAlphaResult = "not-enabled";
     let wolframAlphaTextResult = "";
 
     // Initialize recentcontext based on node or default zettelkasten logic
