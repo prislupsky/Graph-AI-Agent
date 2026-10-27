@@ -186,11 +186,7 @@ function returnLinkNodes() {
     } else {
         window.prompt("Enter a Link or Search Query", '')
             .then(linkInput => {
-                if (!linkInput) return;
-                const searchResults = processLinkInput(linkInput);
-                if (maybePromise instanceof Promise) {
-                    maybePromise.then(() => {});
-                }
+                if (linkInput) processLinkInput(linkInput);
             })
             .catch(err => Logger.err("Failed to get prompt input:", err));
         return null; // nothing to return in browser mode

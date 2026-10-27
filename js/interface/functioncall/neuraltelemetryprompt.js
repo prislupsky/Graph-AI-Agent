@@ -40,11 +40,6 @@ class NeuralTelemetry {
             };
         });
     }
-
-    // Method to get the list of currently saved views
-    getListOfSavedViews() {
-        return listSavedViews();
-    }
 }
 
 function testGetLastFunctionCalls(n) {
@@ -68,15 +63,6 @@ Prompt.forTelemetry = function(telemetry, vision = false){
             prompt.push(", ", "Note Titles", ": ", nodeTitles.join(', '))
         }
     }
-
-    // Append the list of saved views with their coordinates
-    //const savedViewsList = telemetry.getListOfSavedViews();
-    //if (savedViewsList.length > 0) {
-    //    const formattedViews = savedViewsList.map(view => {
-    //        return `{Title: "${view.title}", Coordinates: Zoom ${view.coordinates.zoom}, Pan ${view.coordinates.pan}}`;
-    //    });
-    //    prompt.push(", ", "Saved Views", ": ", formattedViews.join(" | "));
-    //}
 
     // Append the history of function calls
     const historyCount = 3;
@@ -239,7 +225,7 @@ neuriteExploreSequence()`
         ],
         options: "neuralApiNoVision"
     },
-    promptZettelkasten: {
+    requestUserResponse: {
         title: "function requestUserResponse(message) {",
         mainDemo: `/* Takes a message to the user as an argument.
 Returns the user response as a string*/`,
